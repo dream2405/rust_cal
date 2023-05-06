@@ -14,14 +14,14 @@ fn main() {
     let mut result: Vec<f64> = Vec::new(); // 수식의 연산 결과를 담는 스택
 
     let mut ch1 = true; // 중위 표기법대로 제대로 입력했는지 확인하는 부울대수
-    let mut ch2;
+    let mut ch2 = !ch1;
 
     // 입력된 수식을 띄어쓰기 기준으로 나누고 각각 반복문으로 처리
     for s in input.split_whitespace() {
-        ch2 = ch1;
         if let Ok(_) = s.parse::<f64>() {
-            postfix.push(s.to_string()); // 실수로 변환 가능하면 postfix에 push
+            ch2 = ch1;
             ch1 = false;
+            postfix.push(s.to_string()); // 실수로 변환 가능하면 postfix에 push
             continue;
         }
         // 띄어쓰기를 하지 않은 경우 에러처리 ex) 1+2, 2 + 3*4
@@ -33,13 +33,14 @@ fn main() {
         if c == '(' { opers.push(c); }
         else if c == ')' {
             loop {
-                postfix.push(opers.pop().unwrap().to_string());
-                if *opers.last().unwrap() == '(' {
-                    opers.pop();
-                    break;
+                match opers.pop() {
+                    Some('(') => break,
+                    Some(x) => postfix.push(x.to_string()),
+                    None => break,
                 }
             }
         } else if ['+', '-', '*', '/'].contains(&c) {
+            ch2 = ch1;
             ch1 = true;
             while opers.len() > 0 {
                 if isp[opers.last().unwrap()] >= isp[&c] {
