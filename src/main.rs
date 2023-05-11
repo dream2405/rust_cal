@@ -9,15 +9,22 @@ enum Term {
 fn main() {
     // 중위 표기법으로 된 수식 입력
     let input = stdin().lock().lines().next().unwrap().unwrap();
-    // 연산자 우선순위를 hashmap으로 저장
-    let isp = HashMap::from([('+', 0), ('-', 0), ('*', 1), ('/', 1), ('(', -1)]);
-
-    let mut opers: Vec<char> = Vec::new(); // 입력된 수식의 연산자를 담는 스택
     let mut postfix: Vec<Term> = Vec::new(); // 입련된 수식을 후위표기법으로 바꾼 결과를 담는 스택
     let mut result: Vec<f64> = Vec::new(); // 수식의 연산 결과를 담는 스택
 
+    if !to_postfix(&input, &mut postfix) {
+        println!("제대로 입력해주세요!");
+        return;
+    }
+    calculate(&postfix, &mut result);
+}
+
+fn to_postfix(input: &String, postfix: &mut Vec<Term>) -> bool {
+    let mut opers: Vec<char> = Vec::new(); // 입력된 수식의 연산자를 담는 스택
     let mut ch1 = true; // 중위 표기법대로 제대로 입력했는지 확인하는 부울대수
     let mut ch2;
+    let isp = // 연산자 우선순위를 hashmap으로 저장
+        HashMap::from([('+', 0), ('-', 0), ('*', 1), ('/', 1), ('(', -1)]);
 
     // 입력된 수식을 띄어쓰기 기준으로 나누고 각각 반복문으로 처리
     for s in input.split_whitespace() {
@@ -29,8 +36,7 @@ fn main() {
         }
         // 띄어쓰기를 하지 않은 경우 에러처리 ex) 1+2, 2 + 3*4
         if s.chars().count() > 1 {
-            println!("올바르게 입력해주세요!");
-            return;
+            return false;
         }
         let c = s.chars().next().unwrap(); // 연산자를 c로 저장
         if c == '(' {
@@ -62,20 +68,17 @@ fn main() {
             opers.push(c);
         } else {
             // 지원하지 않는 연산자 입력시 에러처리 ex) 1 @ 2
-            println!("올바르게 입력해주세요!");
-            return;
+            return false;
         }
         if ch1 == ch2 {
             // 중위 표기법이 아닐시 에러처리
-            println!("올바르게 입력해주세요!");
-            return;
+            return false;
         }
     }
 
     if ch1 {
         // 중위 표기법이 아닐시 에러처리
-        println!("올바르게 입력해주세요!");
-        return;
+        return false;
     }
 
     loop {
@@ -85,7 +88,10 @@ fn main() {
             _ => break,
         }
     }
+    true
+}
 
+fn calculate(postfix: &Vec<Term>, result: &mut Vec<f64>) {
     for c in postfix.iter() {
         if let Term::Operand(x) = c {
             result.push(*x);
